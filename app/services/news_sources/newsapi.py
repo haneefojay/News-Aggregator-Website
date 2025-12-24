@@ -1,6 +1,6 @@
 import httpx
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 from .base import NewsSourceBase, ArticleData
 
 class NewsAPISource(NewsSourceBase):
@@ -46,16 +46,24 @@ class NewsAPISource(NewsSourceBase):
         ]
     
     def _transform_article(self, raw: Dict) -> ArticleData:
+        # Require title and URL
+        title = raw.get("title")
+        url = raw.get("url")
+        
+        if not title or not url:
+            # This will be caught by the try-except in the task loop
+            raise ValueError("Missing title or URL in NewsAPI article")
+
         return ArticleData(
-            title=raw["title"],
+            title=title,
             description=raw.get("description"),
             content=raw.get("content"),
-            url=raw["url"],
+            url=url,
             source="NewsAPI",
             author=raw.get("author"),
             category=None,
             published_at=datetime.fromisoformat(
-                raw["publishedAt"].replace("Z", "+00:00")
+                raw.get("publishedAt", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00")
             ),
             image_url=raw.get("urlToImage"),
             raw_data=raw

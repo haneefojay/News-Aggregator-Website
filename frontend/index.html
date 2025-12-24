@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse | Modern News Aggregator</title>
+
+    <!-- SEO & Social Meta -->
+    <meta name="description"
+        content="Pulse is a premium news aggregator delivering real-time updates from global sources like NYT, Guardian, and more.">
+    <meta property="og:title" content="Pulse | Modern News Aggregator">
+    <meta property="og:description"
+        content="Stay ahead with real-time news delivery and a stunning reading experience.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon Placeholders -->
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/21/21601.png">
+
+    <link rel="stylesheet" href="style.css">
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="glass-bg"></div>
+
+    <header>
+        <nav class="glass-nav">
+            <div class="logo">
+                <i class="fa-solid fa-bolt-lightning"></i>
+                <span>Pulse<span>News</span></span>
+            </div>
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search global headlines...">
+            </div>
+            <div class="nav-actions">
+                <button id="syncBtn" class="premium-btn-sync" title="Sync Latest News">
+                    <i class="fa-solid fa-rotate"></i> Sync
+                </button>
+                <button id="themeToggle" class="icon-btn"><i class="fa-solid fa-moon"></i></button>
+                <div class="status-indicator live">
+                    <span class="dot"></span> LIVE
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="filter-section">
+            <div class="filter-group">
+                <button class="filter-btn active" data-category="all">All News</button>
+                <button class="filter-btn" data-category="Technology">Tech</button>
+                <button class="filter-btn" data-category="Business">Business</button>
+                <button class="filter-btn" data-category="Science">Science</button>
+                <button class="filter-btn" data-category="Health">Health</button>
+            </div>
+            <div class="meta-filters" id="customSelectContainer">
+                <div class="custom-select" id="customSelectTrigger">
+                    <span id="selectedSourceText">All Sources</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="custom-options" id="customOptionsList">
+                    <li data-value="">All Sources</li>
+                    <li data-value="NewsAPI">NewsAPI</li>
+                    <li data-value="Guardian">The Guardian</li>
+                    <li data-value="NYTimes">NY Times</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="loading" class="loading-container">
+            <div class="pulse-loader"></div>
+            <p>Gathering latest headlines...</p>
+        </div>
+
+        <div id="newsGrid" class="news-grid">
+            <!-- Articles will be injected here -->
+        </div>
+
+        <div id="noResults" class="no-results hidden">
+            <i class="fa-solid fa-face-frown-open"></i>
+            <h3>No articles found</h3>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+
+        <div class="pagination">
+            <button id="prevPage" class="pagination-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="pageNumbers">Page 1 of 1</span>
+            <button id="nextPage" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Pulse News API Ingestion System. All rights reserved.</p>
+    </footer>
+
+    <!-- Article Modal -->
+    <div id="articleModal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-body">
+                <img id="modalImage" src="" alt="" class="modal-hero">
+                <div class="modal-content">
+                    <div class="modal-meta">
+                        <span id="modalCategory" class="category"></span>
+                        <span id="modalSource" class="source"></span>
+                        <span id="modalDate" class="date"></span>
+                    </div>
+                    <h2 id="modalTitle"></h2>
+                    <div id="modalAuthor" class="modal-author"></div>
+                    <div id="modalDescription" class="modal-desc"></div>
+                    <div class="modal-footer">
+                        <a id="modalSourceLink" href="#" target="_blank" class="premium-btn">
+                            Read Full Article <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

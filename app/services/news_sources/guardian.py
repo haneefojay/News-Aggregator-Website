@@ -1,6 +1,6 @@
 import httpx
 from typing import List, Optional, Dict
-from datetime import datetime
+from datetime import datetime, timezone
 from .base import NewsSourceBase, ArticleData
 
 class GuardianSource(NewsSourceBase):
@@ -49,16 +49,24 @@ class GuardianSource(NewsSourceBase):
     
     def _transform_article(self, raw: Dict) -> ArticleData:
         fields = raw.get("fields", {})
+        
+        # Require title and URL
+        title = raw.get("webTitle")
+        url = raw.get("webUrl")
+        
+        if not title or not url:
+            raise ValueError("Missing title or URL in Guardian article")
+
         return ArticleData(
-            title=raw["webTitle"],
+            title=title,
             description=fields.get("trailText"),
             content=fields.get("body"),
-            url=raw["webUrl"],
+            url=url,
             source="Guardian",
             author=fields.get("byline"),
             category=raw.get("sectionName"),
             published_at=datetime.fromisoformat(
-                raw["webPublicationDate"].replace("Z", "+00:00")
+                raw.get("webPublicationDate", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00")
             ),
             image_url=fields.get("thumbnail"),
             raw_data=raw

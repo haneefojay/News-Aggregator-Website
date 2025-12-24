@@ -7,8 +7,16 @@ from app.config import get_settings
 from app.core.database import engine, Base
 from app.models.article import Article  # Load models for Base.metadata
 
+from app.core.logger import setup_logging, get_logger
+
+logger = get_logger(__name__)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Setup logging
+    setup_logging()
+    logger.info("Pulse News API Starting up...")
+    
     # This runs on startup
     async with engine.begin() as conn:
         # Enable pg_trgm extension for full-text search index

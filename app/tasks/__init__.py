@@ -7,7 +7,8 @@ settings = get_settings()
 celery_app = Celery(
     "news_aggregator",
     broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND
+    backend=settings.CELERY_RESULT_BACKEND,
+    include=["app.tasks.fetch_articles"]
 )
 
 celery_app.conf.update(
@@ -23,10 +24,9 @@ celery_app.conf.update(
 # Schedule periodic tasks
 celery_app.conf.beat_schedule = {
     "fetch-articles-every-15-minutes": {
-        "task": "app.tasks.fetch_articles.fetch_all_sources",
+        "task": "fetch_all_sources",
         "schedule": crontab(minute=f"*/{settings.FETCH_INTERVAL_MINUTES}"),
     },
 }
 
-# Import tasks so Celery can find them
-import app.tasks.fetch_articles
+# The 'include' parameter above handles task discovery

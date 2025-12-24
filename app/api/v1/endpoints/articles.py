@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from math import ceil
 
 from app.core.database import get_db
 from app.core.cache import CacheManager, get_cache
 from app.services.article_service import ArticleService
 from app.schemas.article import ArticleResponse, PaginatedArticles
+from app.tasks.fetch_articles import fetch_all_sources
 
 router = APIRouter()
 
 @router.get("/articles", response_model=PaginatedArticles)
 async def search_articles(
-    query: Optional[str] = Query(None, description="Search query"),
+    query: Optional[str] = Query(None, alias="q", description="Search query"),
     source: Optional[str] = Query(None, description="Filter by source"),
     category: Optional[str] = Query(None, description="Filter by category"),
     from_date: Optional[datetime] = Query(None, description="Start date"),
@@ -26,9 +27,11 @@ async def search_articles(
     """
     Search and filter articles with caching.
     """
-    # Create cache key
+    # Create stable cache key
     cache_params = f"{query}:{source}:{category}:{from_date}:{to_date}:{page}:{page_size}"
-    cache_key = f"articles:search:{hash(cache_params)}"
+    import hashlib
+    hash_val = hashlib.md5(cache_params.encode()).hexdigest()
+    cache_key = f"articles:search:{hash_val}"
     
     # Try cache
     cached = await cache.get(cache_key)
@@ -57,9 +60,18 @@ async def search_articles(
     )
     
     # Set cache (limit to 5 mins for search results)
-    await cache.set(cache_key, response_data.model_dump(), ttl=300)
+    await cache.set(cache_key, response_data.model_dump(mode="json"), ttl=300)
     
     return response_data
+
+@router.post("/sync", status_code=202)
+async def trigger_sync():
+    """
+    Trigger a manual news synchronization in the background.
+    """
+    # Trigger the Celery task
+    fetch_all_sources.delay()
+    return {"message": "Synchronization triggered", "status": "pending"}
 
 @router.get("/articles/{article_id}", response_model=ArticleResponse)
 async def get_article(

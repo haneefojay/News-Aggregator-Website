@@ -16,7 +16,11 @@ start "Celery Worker" cmd /k "call .\venv\Scripts\activate && celery -A app.task
 :: Start Celery Beat in a new window
 start "Celery Beat" cmd /k "call .\venv\Scripts\activate && celery -A app.tasks beat --loglevel=info"
 
+:: Start Frontend in a new window
+start "Frontend - Pulse News" cmd /k "cd frontend && python -m http.server 3000"
+
 echo Services started. 
 echo API: http://localhost:8000/docs
+echo Frontend: http://localhost:3000
 echo.
 echo Make sure PostgreSQL and Redis are running on your machine!

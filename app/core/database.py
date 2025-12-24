@@ -4,13 +4,21 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Async engine with connection pooling
-engine = create_async_engine(
+def create_db_engine(url: str, echo: bool = False, pool_size: int = 5, max_overflow: int = 10):
+    return create_async_engine(
+        url,
+        echo=echo,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+        pool_pre_ping=True,
+    )
+
+# Global engine for FastAPI
+engine = create_db_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     pool_size=settings.DB_POOL_SIZE,
-    max_overflow=settings.DB_MAX_OVERFLOW,
-    pool_pre_ping=True,
+    max_overflow=settings.DB_MAX_OVERFLOW
 )
 
 # Session factory

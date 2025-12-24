@@ -58,11 +58,23 @@ If you have PostgreSQL and Redis (via WSL/Native) running:
    ```bash
    pip install -r requirements.txt
    ```
-2. **Launch Services**:
+2. **Launch Services & Frontend**:
    Double-click `run_local.bat` or run it from the terminal:
    ```bash
    .\run_local.bat
    ```
+
+---
+
+## 🎨 Frontend
+
+The project includes a modern, glassmorphism-inspired frontend dashboard located in the `/frontend` directory. It features:
+- **Search & Filtering**: Filter by category (Tech, Business, etc.) and news source.
+- **Dark Mode**: High-contrast, premium aesthetic.
+- **Real-time Status**: Shows live connection status to the backend.
+- **Responsive Design**: Works seamlessly on mobile and desktop.
+
+Access it at: [http://localhost:3000](http://localhost:3000)
 
 ---
 

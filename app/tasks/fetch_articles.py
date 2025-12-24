@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 from app.tasks import celery_app
@@ -9,8 +9,10 @@ from app.services.news_sources.newsapi import NewsAPISource
 from app.services.news_sources.guardian import GuardianSource
 from app.services.news_sources.nytimes import NYTimesSource
 from app.config import get_settings
+from app.core.logger import get_logger
 
 settings = get_settings()
+logger = get_logger(__name__)
 
 @celery_app.task(name="fetch_all_sources", bind=True, max_retries=3)
 def fetch_all_sources(self):
@@ -25,6 +27,11 @@ def fetch_all_sources(self):
 
 async def _fetch_all_sources_async():
     """Actual async fetching logic"""
+    from app.core.database import create_db_engine, AsyncSession, async_sessionmaker
+    
+    # Create a task-specific engine to avoid "Event loop is closed" errors
+    task_engine = create_db_engine(settings.DATABASE_URL, pool_size=2, max_overflow=0)
+    TaskSessionLocal = async_sessionmaker(task_engine, class_=AsyncSession, expire_on_commit=False)
     
     # Initialize sources
     sources = []
@@ -37,14 +44,15 @@ async def _fetch_all_sources_async():
     
     if not sources:
         print("No news API keys configured. Skipping fetch.")
+        await task_engine.dispose()
         return "No sources configured"
     
     # Fetch from last 24 hours
-    from_date = datetime.utcnow() - timedelta(days=1)
+    from_date = datetime.now(timezone.utc) - timedelta(days=1)
     
     results = {}
     
-    async with AsyncSessionLocal() as db:
+    async with TaskSessionLocal() as db:
         article_service = ArticleService(db)
         
         for source in sources:
@@ -58,9 +66,13 @@ async def _fetch_all_sources_async():
                 
                 new_count = 0
                 for article_data in articles:
-                    article = await article_service.create_article(article_data)
-                    if article:
-                        new_count += 1
+                    try:
+                        article = await article_service.create_article(article_data)
+                        if article:
+                            new_count += 1
+                    except Exception as e:
+                        print(f"Skipping article due to error: {e}")
+                        continue
                 
                 await db.commit()
                 results[source.source_name] = new_count
@@ -74,5 +86,8 @@ async def _fetch_all_sources_async():
                 await db.rollback()
                 results[source.source_name] = f"Error: {str(e)}"
                 continue
+    
+    # Crucial: Close everything
+    await task_engine.dispose()
                 
     return results
