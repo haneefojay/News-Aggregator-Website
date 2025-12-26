@@ -84,7 +84,31 @@ class ArticleService:
             conditions.append(Article.source == source)
         
         if category:
-            conditions.append(Article.category.ilike(category))
+            cat_lower = category.lower()
+            if cat_lower == "sports":
+                conditions.append(or_(
+                    Article.category.ilike("sports"),
+                    Article.category.ilike("sport"),
+                    Article.category.ilike("football"),
+                    Article.category.ilike("soccer"),
+                    Article.category.ilike("tennis"),
+                    Article.category.ilike("basketball")
+                ))
+            elif cat_lower == "politics":
+                conditions.append(or_(
+                    Article.category.ilike("politics"),
+                    Article.category.ilike("uk news"),
+                    Article.category.ilike("us news"),
+                    Article.category.ilike("world news"),
+                    Article.category.ilike("society")
+                ))
+            elif cat_lower == "technology":
+                conditions.append(or_(
+                    Article.category.ilike("technology"),
+                    Article.category.ilike("tech")
+                ))
+            else:
+                conditions.append(Article.category.ilike(category))
         
         if from_date:
             conditions.append(Article.published_at >= from_date)
