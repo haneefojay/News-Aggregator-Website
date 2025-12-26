@@ -14,11 +14,14 @@ const customSelectTrigger = document.getElementById('customSelectTrigger');
 const customOptionsList = document.getElementById('customOptionsList');
 const selectedSourceText = document.getElementById('selectedSourceText');
 const categoryButtons = document.querySelectorAll('.filter-btn');
-const pageNumbers = document.getElementById('pageNumbers');
-const prevPage = document.getElementById('prevPage');
-const nextPage = document.getElementById('nextPage');
+const infiniteScrollTrigger = document.getElementById('infiniteScrollTrigger');
 const syncBtn = document.getElementById('syncBtn');
+const installBtn = document.getElementById('installBtn');
 const themeToggle = document.getElementById('themeToggle');
+
+let isLoading = false;
+let hasMore = true;
+let deferredPrompt = null;
 
 // Modal Elements
 const articleModal = document.getElementById('articleModal');
@@ -27,6 +30,7 @@ const modalCategory = document.getElementById('modalCategory');
 const modalSource = document.getElementById('modalSource');
 const modalDate = document.getElementById('modalDate');
 const modalTitle = document.getElementById('modalTitle');
+const modalIntelligence = document.getElementById('modalIntelligence');
 const modalAuthor = document.getElementById('modalAuthor');
 const modalDescription = document.getElementById('modalDescription');
 const modalSourceLink = document.getElementById('modalSourceLink');
@@ -37,7 +41,52 @@ const modalBackdrop = document.querySelector('.modal-backdrop');
 document.addEventListener('DOMContentLoaded', () => {
     fetchNews();
     setupEventListeners();
+    setupInfiniteScroll();
+    setupPWAInstall();
 });
+
+function setupInfiniteScroll() {
+    const observer = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !isLoading && hasMore && currentCategory !== 'saved') {
+            currentPage++;
+            fetchNews(true);
+        }
+    }, { rootMargin: '100px' });
+
+    observer.observe(infiniteScrollTrigger);
+}
+
+function setupPWAInstall() {
+    // Capture the install prompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show the install button
+        installBtn.classList.remove('hidden');
+    });
+
+    // Handle install button click
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+            console.log('PWA installed successfully');
+        }
+
+        deferredPrompt = null;
+        installBtn.classList.add('hidden');
+    });
+
+    // Hide button if already installed
+    window.addEventListener('appinstalled', () => {
+        installBtn.classList.add('hidden');
+        deferredPrompt = null;
+    });
+}
 
 function setupEventListeners() {
     // Search with debounce
@@ -94,18 +143,6 @@ function setupEventListeners() {
     });
 
     // Pagination
-    prevPage.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            fetchNews();
-        }
-    });
-
-    nextPage.addEventListener('click', () => {
-        currentPage++;
-        fetchNews();
-    });
-
     // Manual Sync
     syncBtn.addEventListener('click', async () => {
         const icon = syncBtn.querySelector('i');
@@ -166,6 +203,16 @@ function openModal(article) {
     modalTitle.textContent = article.title;
     modalAuthor.innerHTML = `<i class="fa-solid fa-user-pen"></i> ${article.author || 'Pulse Reporter'}`;
 
+    // Render Modal Intelligence
+    modalIntelligence.innerHTML = `
+        <div class="badge badge-read-time">
+            <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 3} min read
+        </div>
+        <div class="badge badge-${article.sentiment}">
+            <i class="fa-solid ${getSentimentIcon(article.sentiment)}"></i> ${article.sentiment}
+        </div>
+    `;
+
     // Approach C: Summary-First (only show the lead)
     modalDescription.innerHTML = article.description || 'No description available for this article.';
     modalSourceLink.href = article.url;
@@ -185,10 +232,43 @@ function closeModal() {
     document.body.style.overflow = ''; // Restore scrolling
 }
 
-async function fetchNews() {
-    showLoading(true);
+async function fetchNews(append = false) {
+    if (isLoading) return;
+    isLoading = true;
+
+    // Show appropriate loader
+    if (!append) {
+        showLoading(true);
+        infiniteScrollTrigger.classList.add('hidden');
+        currentPage = 1; // Reset to page 1 on new search/filter
+        hasMore = true; // Reset hasMore flag
+    } else {
+        infiniteScrollTrigger.classList.remove('hidden');
+    }
 
     try {
+        // Special handling for "Saved" category
+        if (currentCategory === 'saved') {
+            let filtered = getSavedArticles();
+
+            if (currentSource) {
+                filtered = filtered.filter(a => a.source === currentSource);
+            }
+
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(a =>
+                    a.title.toLowerCase().includes(q) ||
+                    (a.description && a.description.toLowerCase().includes(q))
+                );
+            }
+
+            displayNews(filtered, false);
+            hasMore = false; // No infinite scroll for saved items
+            infiniteScrollTrigger.classList.add('hidden');
+            return;
+        }
+
         const params = new URLSearchParams({
             page: currentPage,
             page_size: 12
@@ -198,25 +278,53 @@ async function fetchNews() {
         if (currentSource) params.append('source', currentSource);
         if (searchQuery) params.append('q', searchQuery);
 
+        console.log('Fetching page:', currentPage);
         const response = await fetch(`${API_URL}/articles?${params}`);
         const data = await response.json();
 
-        displayNews(data.articles);
-        updatePagination(data.total, data.page, data.page_size);
+        console.log('Response:', {
+            articlesCount: data.articles.length,
+            currentPage: data.page,
+            totalPages: data.total_pages,
+            total: data.total
+        });
+
+        if (data.articles.length === 0) {
+            hasMore = false;
+            infiniteScrollTrigger.classList.add('hidden');
+            if (!append) noResults.classList.remove('hidden');
+        } else {
+            hasMore = currentPage < data.total_pages;
+            displayNews(data.articles, append);
+
+            // Show or hide the trigger based on whether there's more content
+            if (hasMore) {
+                infiniteScrollTrigger.classList.remove('hidden');
+                console.log('More pages available. Showing trigger.');
+            } else {
+                infiniteScrollTrigger.classList.add('hidden');
+                console.log('No more pages. Hiding trigger.');
+            }
+        }
+
     } catch (error) {
         console.error('Error fetching news:', error);
-        // If API fails, show "connection error" message
-        newsGrid.innerHTML = '';
-        noResults.classList.remove('hidden');
-        noResults.querySelector('h3').textContent = 'Something went wrong';
-        noResults.querySelector('p').textContent = 'We’re unable to connect to our servers right now. Please check your internet connection and try again.';
+        if (!append) {
+            newsGrid.innerHTML = '';
+            noResults.classList.remove('hidden');
+            noResults.querySelector('h3').textContent = 'Something went wrong';
+            noResults.querySelector('p').textContent = 'We\'re unable to connect to our servers right now.';
+        }
     } finally {
-        showLoading(false);
+        isLoading = false;
+        if (!append) showLoading(false);
     }
 }
 
-function displayNews(articles) {
-    newsGrid.innerHTML = '';
+function displayNews(articles, append = false) {
+    if (!append) {
+        newsGrid.innerHTML = '';
+    }
 
     if (!articles || articles.length === 0) {
         noResults.classList.remove('hidden');
@@ -233,6 +341,19 @@ function displayNews(articles) {
         const imageUrl = article.image_url || `https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop`;
 
         card.innerHTML = `
+
+
+            <div class="card-intelligence">
+                <div class="badge badge-read-time">
+                    <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 1}m
+                </div>
+                <div class="badge badge-${article.sentiment}">
+                    <i class="fa-solid ${getSentimentIcon(article.sentiment)}"></i>
+                </div>
+                <button class="bookmark-btn ${isSaved(article.id) ? 'saved' : ''}" data-id="${article.id}" title="${isSaved(article.id) ? 'Remove from Saved' : 'Save for Later'}">
+                    <i class="fa-${isSaved(article.id) ? 'solid' : 'regular'} fa-star"></i>
+                </button>
+            </div>
             <img src="${imageUrl}" class="card-img" alt="${article.title}" loading="lazy"
                  onerror="this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop'">
             <div class="card-content">
@@ -252,21 +373,42 @@ function displayNews(articles) {
             </div>
         `;
 
-        card.addEventListener('click', () => {
-            openModal(article);
+        // Card click: Open Modal (ignore bookmark button clicks)
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('.bookmark-btn')) {
+                openModal(article);
+            }
+        });
+
+        // Bookmark Click
+        const bookmarkBtn = card.querySelector('.bookmark-btn');
+        bookmarkBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBookmark(article);
+
+            // UI visual update
+            const icon = bookmarkBtn.querySelector('i');
+            bookmarkBtn.classList.toggle('saved');
+            if (bookmarkBtn.classList.contains('saved')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid');
+            } else {
+                icon.classList.remove('fa-solid');
+                icon.classList.add('fa-regular');
+
+                // If in "Saved" view, remove card instantly
+                if (currentCategory === 'saved') {
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                }
+            }
         });
 
         newsGrid.appendChild(card);
     });
 }
 
-function updatePagination(total, page, size) {
-    const totalPages = Math.ceil(total / size) || 1;
-    pageNumbers.textContent = `Page ${page} of ${totalPages}`;
 
-    prevPage.disabled = page <= 1;
-    nextPage.disabled = page >= totalPages;
-}
 
 function showLoading(show) {
     if (show) {
@@ -286,4 +428,37 @@ function formatDate(dateStr) {
         day: 'numeric',
         year: 'numeric'
     });
+}
+
+function getSentimentIcon(sentiment) {
+    switch (sentiment) {
+        case 'urgent': return 'fa-triangle-exclamation';
+        case 'positive': return 'fa-face-smile';
+        default: return 'fa-circle-info';
+    }
+}
+
+// --- Bookmarking Logic ---
+
+function getSavedArticles() {
+    const saved = localStorage.getItem('pulse-bookmarks');
+    return saved ? JSON.parse(saved) : [];
+}
+
+function isSaved(articleId) {
+    const saved = getSavedArticles();
+    return saved.some(a => a.id === articleId);
+}
+
+function toggleBookmark(article) {
+    let saved = getSavedArticles();
+    if (isSaved(article.id)) {
+        // Remove
+        saved = saved.filter(a => a.id !== article.id);
+    } else {
+        // Add (Limit to 50 to prevent overflow)
+        if (saved.length >= 50) saved.shift();
+        saved.push(article);
+    }
+    localStorage.setItem('pulse-bookmarks', JSON.stringify(saved));
 }

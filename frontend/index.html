@@ -15,10 +15,17 @@
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
 
-    <!-- Favicon Placeholders -->
-    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/21/21601.png">
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
-    <link rel="stylesheet" href="style.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="style.css?v=2">
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +52,9 @@
                 <button id="syncBtn" class="premium-btn-sync" title="Sync Latest News">
                     <i class="fa-solid fa-rotate"></i> Sync
                 </button>
+                <button id="installBtn" class="icon-btn hidden" title="Install App">
+                    <i class="fa-solid fa-download"></i>
+                </button>
                 <button id="themeToggle" class="icon-btn"><i class="fa-solid fa-moon"></i></button>
                 <div class="status-indicator live">
                     <span class="dot"></span> LIVE
@@ -57,6 +67,7 @@
         <div class="filter-section">
             <div class="filter-group">
                 <button class="filter-btn active" data-category="all">All News</button>
+                <button class="filter-btn" data-category="saved"><i class="fa-solid fa-bookmark"></i> Saved</button>
                 <button class="filter-btn" data-category="Technology">Tech</button>
                 <button class="filter-btn" data-category="Business">Business</button>
                 <button class="filter-btn" data-category="Science">Science</button>
@@ -91,10 +102,10 @@
             <p>Try adjusting your search or filters.</p>
         </div>
 
-        <div class="pagination">
-            <button id="prevPage" class="pagination-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
-            <span id="pageNumbers">Page 1 of 1</span>
-            <button id="nextPage" class="pagination-btn"><i class="fa-solid fa-chevron-right"></i></button>
+        <!-- Infinite Scroll Sentinel & Loader -->
+        <div id="infiniteScrollTrigger" class="infinite-loader hidden">
+            <div class="spinner"></div>
+            <span>Loading more news...</span>
         </div>
     </main>
 
@@ -115,6 +126,7 @@
                         <span id="modalSource" class="source"></span>
                         <span id="modalDate" class="date"></span>
                     </div>
+                    <div id="modalIntelligence" class="modal-intelligence"></div>
                     <h2 id="modalTitle"></h2>
                     <div id="modalAuthor" class="modal-author"></div>
                     <div id="modalDescription" class="modal-desc"></div>
@@ -128,7 +140,22 @@
         </div>
     </div>
 
+
+
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Pulse PWA: ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('Pulse PWA: ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>

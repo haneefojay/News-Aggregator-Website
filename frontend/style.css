@@ -141,7 +141,7 @@ header {
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-.premium-btn-sync{
+.premium-btn-sync {
     background: linear-gradient(135deg, var(--primary), #818cf8);
     color: white;
     border: none;
@@ -384,9 +384,16 @@ main {
 
 .card-img {
     width: 100%;
-    height: 200px;
+    height: 100%;
     object-fit: cover;
     background: #1e293b;
+}
+
+.card-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
 }
 
 .card-content {
@@ -448,6 +455,123 @@ main {
     color: var(--text-muted);
 }
 
+.bookmark-btn {
+    position: relative;
+    margin-top: 0.5rem;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.6rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-appearance: none;
+    appearance: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.bookmark-btn:hover {
+    color: white;
+    transform: scale(1.2);
+}
+
+.bookmark-btn.saved {
+    background: transparent !important;
+    border: none !important;
+    color: #f59e0b !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.8));
+    animation: heart-pulse 0.4s ease;
+}
+
+
+
+
+@keyframes heart-pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Intelligence Layer Styles */
+.card-intelligence {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 5;
+}
+
+.badge {
+    padding: 0.35rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: white;
+}
+
+.badge-read-time {
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.badge-positive {
+    background: rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.badge-urgent {
+    background: rgba(244, 63, 94, 0.8);
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+    animation: pulse-urgent 2s infinite;
+}
+
+.badge-neutral {
+    display: none;
+    /* Keep it clean if it's just normal news */
+}
+
+@keyframes pulse-urgent {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.modal-intelligence {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
 /* Loader */
 .loading-container {
     display: flex;
@@ -500,38 +624,25 @@ main {
     color: var(--primary);
 }
 
-/* Pagination */
-.pagination {
+/* Infinite Scroll Loader */
+.infinite-loader {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 2rem;
-    margin-top: 4rem;
-    padding-bottom: 4rem;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
-.pagination-btn {
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--text-main);
-    width: 40px;
-    height: 40px;
+.infinite-loader .spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary);
     border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-}
-
-.pagination-btn:hover:not(:disabled) {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-.pagination-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+    animation: rotate 1s linear infinite;
 }
 
 /* Footer */
@@ -680,6 +791,17 @@ footer {
     overflow-y: auto;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Hide Scrollbar */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.modal-container::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
 }
 
 @keyframes modalSlide {

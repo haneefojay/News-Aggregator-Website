@@ -17,12 +17,16 @@ class Article(Base):
     
     # Metadata
     source = Column(String(100), nullable=False, index=True)
-    author = Column(String(200))
+    author = Column(String(500))
     category = Column(String(100), index=True)
     published_at = Column(DateTime(timezone=True), index=True)
     
     # Images
     image_url = Column(String(2000))
+    
+    # Intelligence Layer
+    read_time_minutes = Column(Integer, default=1)
+    sentiment = Column(String(20), default="neutral") # positive, neutral, urgent
     
     # Raw data
     raw_data = Column(JSONB)
