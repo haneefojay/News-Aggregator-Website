@@ -74,6 +74,35 @@ header {
 .logo i {
     color: var(--primary);
     filter: drop-shadow(0 0 8px var(--primary));
+    animation: lightning-pulse 3s infinite ease-in-out;
+}
+
+@keyframes lightning-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 8px var(--primary));
+        opacity: 1;
+    }
+
+    45% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 15px var(--primary));
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 25px var(--primary)) brightness(1.5);
+        opacity: 1;
+    }
+
+    55% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 15px var(--primary));
+        opacity: 0.9;
+    }
 }
 
 .logo span span {
