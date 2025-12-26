@@ -41,11 +41,11 @@ class NewsAPISource(NewsSourceBase):
             data = response.json()
         
         return [
-            self._transform_article(article) 
+            self._transform_article(article, category) 
             for article in data.get("articles", [])
         ]
     
-    def _transform_article(self, raw: Dict) -> ArticleData:
+    def _transform_article(self, raw: Dict, category: Optional[str] = None) -> ArticleData:
         # Require title and URL
         title = raw.get("title")
         url = raw.get("url")
@@ -54,6 +54,9 @@ class NewsAPISource(NewsSourceBase):
             # This will be caught by the try-except in the task loop
             raise ValueError("Missing title or URL in NewsAPI article")
 
+        # Normalize category (Politics -> politics for API vs Display)
+        # But here we want the display version or None
+        
         return ArticleData(
             title=title,
             description=raw.get("description"),
@@ -61,7 +64,7 @@ class NewsAPISource(NewsSourceBase):
             url=url,
             source="NewsAPI",
             author=raw.get("author"),
-            category=None,
+            category=category or "General",
             published_at=datetime.fromisoformat(
                 raw.get("publishedAt", datetime.now(timezone.utc).isoformat()).replace("Z", "+00:00")
             ),

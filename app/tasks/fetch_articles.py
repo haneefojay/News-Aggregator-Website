@@ -50,42 +50,54 @@ async def _fetch_all_sources_async():
     # Fetch from last 24 hours
     from_date = datetime.now(timezone.utc) - timedelta(days=1)
     
+    categories = ["Technology", "Business", "Science", "Health", "Sports", "Politics"]
     results = {}
     
     async with TaskSessionLocal() as db:
         article_service = ArticleService(db)
         
         for source in sources:
-            try:
-                print(f"Fetching from {source.source_name}...")
-                
-                articles = await source.fetch_articles(
-                    from_date=from_date,
-                    page_size=50
-                )
-                
-                new_count = 0
-                for article_data in articles:
-                    try:
-                        article = await article_service.create_article(article_data)
-                        if article:
-                            new_count += 1
-                    except Exception as e:
-                        print(f"Skipping article due to error: {e}")
-                        continue
-                
-                await db.commit()
-                results[source.source_name] = new_count
-                print(f"Added {new_count} new articles from {source.source_name}")
-                
-                # Respect rate limits
-                await asyncio.sleep(source.rate_limit_delay)
-                
-            except Exception as e:
-                print(f"Error fetching from {source.source_name}: {e}")
-                await db.rollback()
-                results[source.source_name] = f"Error: {str(e)}"
-                continue
+            source_count = 0
+            results[source.source_name] = 0
+            
+            for category in categories:
+                try:
+                    print(f"Fetching {category} from {source.source_name}...")
+                    
+                    articles = await source.fetch_articles(
+                        category=category.lower() if source.source_name == "NewsAPI" else category,
+                        from_date=from_date,
+                        page_size=20 # Reduced per category to stay within limits
+                    )
+                    
+                    new_count = 0
+                    for article_data in articles:
+                        try:
+                            # Force the category if the source doesn't provide it or provides something else
+                            if not article_data.category or article_data.category == "General":
+                                article_data.category = category
+                                
+                            article = await article_service.create_article(article_data)
+                            if article:
+                                new_count += 1
+                        except Exception as e:
+                            print(f"Skipping article due to error: {e}")
+                            continue
+                    
+                    await db.commit()
+                    source_count += new_count
+                    print(f"Added {new_count} new {category} articles from {source.source_name}")
+                    
+                    # Small delay between categories for the same source
+                    await asyncio.sleep(source.rate_limit_delay / 2)
+                    
+                except Exception as e:
+                    print(f"Error fetching {category} from {source.source_name}: {e}")
+                    await db.rollback()
+                    continue
+            
+            results[source.source_name] = source_count
+            print(f"Total added from {source.source_name}: {source_count}")
     
     # Crucial: Close everything
     await task_engine.dispose()
