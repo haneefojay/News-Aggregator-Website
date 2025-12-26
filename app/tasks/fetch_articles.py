@@ -73,9 +73,8 @@ async def _fetch_all_sources_async():
                     new_count = 0
                     for article_data in articles:
                         try:
-                            # Force the category if the source doesn't provide it or provides something else
-                            if not article_data.category or article_data.category == "General":
-                                article_data.category = category
+                            # Always force the category to our standard names for consistent filtering
+                            article_data.category = category
                                 
                             article = await article_service.create_article(article_data)
                             if article:

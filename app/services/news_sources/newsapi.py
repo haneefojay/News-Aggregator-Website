@@ -24,9 +24,10 @@ class NewsAPISource(NewsSourceBase):
             "language": "en",
         }
         
-        if query:
-            params["q"] = query
+        if query or category == "politics":
+            params["q"] = query or "politics"
             endpoint = f"{self.BASE_URL}/everything"
+            params["sortBy"] = "publishedAt"
         else:
             endpoint = f"{self.BASE_URL}/top-headlines"
             if category:

@@ -84,7 +84,7 @@ class ArticleService:
             conditions.append(Article.source == source)
         
         if category:
-            conditions.append(Article.category == category)
+            conditions.append(Article.category.ilike(category))
         
         if from_date:
             conditions.append(Article.published_at >= from_date)

@@ -269,7 +269,10 @@ async function fetchNews(append = false) {
         if (data.articles.length === 0) {
             hasMore = false;
             infiniteScrollTrigger.classList.add('hidden');
-            if (!append) noResults.classList.remove('hidden');
+            if (!append) {
+                newsGrid.innerHTML = ''; // Clear old articles
+                noResults.classList.remove('hidden');
+            }
         } else {
             hasMore = currentPage < data.total_pages;
             displayNews(data.articles, append);

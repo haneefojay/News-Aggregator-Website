@@ -28,7 +28,9 @@ class GuardianSource(NewsSourceBase):
             params["q"] = query
         
         if category:
-            params["section"] = category
+            # Guardian section for Sports is "sport"
+            section = "sport" if category.lower() == "sports" else category
+            params["section"] = section
             
         if from_date:
             params["from-date"] = from_date.strftime("%Y-%m-%d")
