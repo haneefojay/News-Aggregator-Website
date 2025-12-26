@@ -48,3 +48,5 @@ venv.bak/
 Thumbs.db
 
 celerybeat*
+
+pyproject.toml
