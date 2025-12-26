@@ -26,7 +26,6 @@ class Article(Base):
     
     # Intelligence Layer
     read_time_minutes = Column(Integer, default=1)
-    sentiment = Column(String(20), default="neutral") # positive, neutral, urgent
     
     # Raw data
     raw_data = Column(JSONB)

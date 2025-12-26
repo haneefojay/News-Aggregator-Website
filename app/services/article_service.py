@@ -38,11 +38,6 @@ class ArticleService:
         read_time = IntelligenceService.calculate_read_time(
             f"{article_data.description} {article_data.content}"
         )
-        sentiment = IntelligenceService.analyze_sentiment(
-            article_data.title, 
-            article_data.description or ""
-        )
-
         # Create new article
         article = Article(
             title=article_data.title,
@@ -56,8 +51,7 @@ class ArticleService:
             published_at=article_data.published_at,
             image_url=article_data.image_url,
             raw_data=article_data.raw_data,
-            read_time_minutes=read_time,
-            sentiment=sentiment
+            read_time_minutes=read_time
         )
         
         self.db.add(article)

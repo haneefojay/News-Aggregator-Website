@@ -31,32 +31,4 @@ class IntelligenceService:
         minutes = max(3, round(word_count / 225))
         return minutes
 
-    @staticmethod
-    def analyze_sentiment(title: str, description: str) -> str:
-        """
-        Analyze sentiment/urgency using a lightweight keyword approach.
-        Returns: 'positive', 'neutral', or 'urgent'
-        """
-        combined = f"{title} {description}".lower()
-        
-        # Urgency Keywords
-        urgent_keywords = [
-            'breaking', 'urgent', 'alert', 'crisis', 'emergency', 
-            'breaking news', 'just in', 'live updates', 'warns',
-            'deadly', 'explosion', 'earthquake', 'attack'
-        ]
-        
-        if any(keyword in combined for keyword in urgent_keywords):
-            return "urgent"
-            
-        # Positive Keywords
-        positive_keywords = [
-            'success', 'breakthrough', 'discovery', 'hope', 'recovery',
-            'wins', 'excellent', 'fantastic', 'innovative', 'solution',
-            'growth', 'rise', 'benefit', 'award', 'surprised'
-        ]
-        
-        if any(keyword in combined for keyword in positive_keywords):
-            return "positive"
-            
-        return "neutral"
+

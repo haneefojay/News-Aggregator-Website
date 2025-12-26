@@ -24,7 +24,6 @@ class ArticleResponse(ArticleBase):
     published_at: datetime
     image_url: Optional[str] = None
     read_time_minutes: Optional[int] = 1
-    sentiment: Optional[str] = "neutral"
     
     class Config:
         from_attributes = True

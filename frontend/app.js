@@ -188,9 +188,6 @@ function openModal(article) {
         <div class="badge badge-read-time">
             <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 3} min read
         </div>
-        <div class="badge badge-${article.sentiment}">
-            <i class="fa-solid ${getSentimentIcon(article.sentiment)}"></i> ${article.sentiment}
-        </div>
     `;
 
     // Approach C: Summary-First (only show the lead)
@@ -327,9 +324,6 @@ function displayNews(articles, append = false) {
                 <div class="badge badge-read-time">
                     <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 3}m
                 </div>
-                <div class="badge badge-${article.sentiment}">
-                    <i class="fa-solid ${getSentimentIcon(article.sentiment)}"></i>
-                </div>
                 <button class="bookmark-btn ${isSaved(article.id) ? 'saved' : ''}" data-id="${article.id}" title="${isSaved(article.id) ? 'Remove from Saved' : 'Save for Later'}">
                     <i class="fa-${isSaved(article.id) ? 'solid' : 'regular'} fa-star"></i>
                 </button>
@@ -410,13 +404,7 @@ function formatDate(dateStr) {
     });
 }
 
-function getSentimentIcon(sentiment) {
-    switch (sentiment) {
-        case 'urgent': return 'fa-triangle-exclamation';
-        case 'positive': return 'fa-face-smile';
-        default: return 'fa-circle-info';
-    }
-}
+
 
 // --- Bookmarking Logic ---
 
