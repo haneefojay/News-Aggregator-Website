@@ -28,7 +28,7 @@ class IntelligenceService:
             word_count += estimated_extra_words
             
         # Average adult reading speed: 200-250 words per minute
-        minutes = max(1, round(word_count / 225))
+        minutes = max(3, round(word_count / 225))
         return minutes
 
     @staticmethod

@@ -17,7 +17,6 @@ const categoryButtons = document.querySelectorAll('.filter-btn');
 const infiniteScrollTrigger = document.getElementById('infiniteScrollTrigger');
 const syncBtn = document.getElementById('syncBtn');
 const installBtn = document.getElementById('installBtn');
-const themeToggle = document.getElementById('themeToggle');
 
 let isLoading = false;
 let hasMore = true;
@@ -166,16 +165,6 @@ function setupEventListeners() {
         }
     });
 
-    // Theme Toggle
-    themeToggle.addEventListener('click', () => {
-        const isDark = document.body.getAttribute('data-theme') === 'light';
-        setTheme(isDark ? 'dark' : 'light');
-    });
-
-    // Initial theme load
-    const savedTheme = localStorage.getItem('pulse-theme') || 'dark';
-    setTheme(savedTheme);
-
     // Modal Close
     modalClose.addEventListener('click', closeModal);
     modalBackdrop.addEventListener('click', closeModal);
@@ -184,16 +173,7 @@ function setupEventListeners() {
     });
 }
 
-function setTheme(theme) {
-    if (theme === 'light') {
-        document.body.setAttribute('data-theme', 'light');
-        themeToggle.querySelector('i').className = 'fa-solid fa-sun';
-    } else {
-        document.body.removeAttribute('data-theme');
-        themeToggle.querySelector('i').className = 'fa-solid fa-moon';
-    }
-    localStorage.setItem('pulse-theme', theme);
-}
+
 
 function openModal(article) {
     modalImage.src = article.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1000&auto=format&fit=crop';
@@ -345,7 +325,7 @@ function displayNews(articles, append = false) {
 
             <div class="card-intelligence">
                 <div class="badge badge-read-time">
-                    <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 1}m
+                    <i class="fa-regular fa-clock"></i> ${article.read_time_minutes || 3}m
                 </div>
                 <div class="badge badge-${article.sentiment}">
                     <i class="fa-solid ${getSentimentIcon(article.sentiment)}"></i>
