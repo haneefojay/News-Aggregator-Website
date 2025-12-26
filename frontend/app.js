@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000/api/v1';
+// API_URL is loaded from config.js
 
 let currentPage = 1;
 let currentCategory = 'all';

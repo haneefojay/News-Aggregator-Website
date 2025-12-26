@@ -32,11 +32,20 @@ class Settings(BaseSettings):
     
     from pydantic import field_validator
 
-    @field_validator("DATABASE_URL")
+    @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def validate_db_url(cls, v: str) -> str:
-        if not v.startswith("postgresql+asyncpg://"):
-            raise ValueError("DATABASE_URL must start with 'postgresql+asyncpg://'")
+        if not v or not isinstance(v, str):
+            return v
+        
+        # Handle 'postgres://' which is common on platforms like Railway
+        if v.startswith("postgres://"):
+            v = v.replace("postgres://", "postgresql://", 1)
+            
+        # Ensure we're using the asyncpg driver
+        if v.startswith("postgresql://") and "+asyncpg" not in v:
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            
         return v
 
     @field_validator("REDIS_URL", "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND")
