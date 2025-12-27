@@ -88,7 +88,7 @@ async def _fetch_all_sources_async():
                     print(f"Added {new_count} new {category} articles from {source.source_name}")
                     
                     # Small delay between categories for the same source
-                    await asyncio.sleep(source.rate_limit_delay / 2)
+                    await asyncio.sleep(source.rate_limit_delay)
                     
                 except Exception as e:
                     print(f"Error fetching {category} from {source.source_name}: {e}")

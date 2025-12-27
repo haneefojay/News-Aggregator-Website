@@ -8,7 +8,7 @@ class NewsAPISource(NewsSourceBase):
     
     @property
     def rate_limit_delay(self) -> float:
-        return 1.0  # 1 request per second
+        return 3.0  # NewsAPI free tier is very sensitive to bursts
     
     async def fetch_articles(
         self,
@@ -38,6 +38,9 @@ class NewsAPISource(NewsSourceBase):
         
         async with httpx.AsyncClient() as client:
             response = await client.get(endpoint, params=params, timeout=30.0)
+            if response.status_code == 429:
+                print(f"NewsAPI Rate Limit Hit (429). skipping {category or 'General'}")
+                return []
             response.raise_for_status()
             data = response.json()
         

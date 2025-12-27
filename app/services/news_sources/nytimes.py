@@ -8,7 +8,7 @@ class NYTimesSource(NewsSourceBase):
     
     @property
     def rate_limit_delay(self) -> float:
-        return 6.0  # NYT has strict rate limits (default 5-10 requests per minute)
+        return 10.0  # NYT has very strict rate limits
     
     async def fetch_articles(
         self,
@@ -35,14 +35,22 @@ class NYTimesSource(NewsSourceBase):
         
         async with httpx.AsyncClient() as client:
             response = await client.get(endpoint, params=params, timeout=30.0)
+            if response.status_code == 429:
+                print(f"NYT Rate Limit Hit. Waiting...")
+                return []
             response.raise_for_status()
             data = response.json()
             
-        docs = data.get("response", {}).get("docs", [])
+        response_data = data.get("response")
+        if not response_data:
+            return []
+            
+        docs = response_data.get("docs", [])
         
         return [
             self._transform_article(doc) 
             for doc in docs
+            if isinstance(doc, dict)
         ]
     
     def _transform_article(self, raw: Dict) -> ArticleData:
