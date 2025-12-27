@@ -50,7 +50,7 @@ async def _fetch_all_sources_async():
     # Fetch from last 24 hours
     from_date = datetime.now(timezone.utc) - timedelta(days=1)
     
-    categories = ["Technology", "Business", "Science", "Health", "Sports", "Politics"]
+    categories = ["Technology", "Business", "Science", "Sports", "Politics"]
     results = {}
     
     async with TaskSessionLocal() as db:

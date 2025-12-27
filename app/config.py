@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Celery
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
-    FETCH_INTERVAL_MINUTES: int = 15
+    FETCH_INTERVAL_MINUTES: int = 240
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
