@@ -23,7 +23,7 @@ celery_app.conf.update(
 
 # Schedule periodic tasks
 celery_app.conf.beat_schedule = {
-    "fetch-articles-every-15-minutes": {
+    "periodic-article-fetch": {
         "task": "fetch_all_sources",
         "schedule": crontab(minute=f"*/{settings.FETCH_INTERVAL_MINUTES}"),
     },
