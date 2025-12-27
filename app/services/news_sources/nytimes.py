@@ -42,10 +42,12 @@ class NYTimesSource(NewsSourceBase):
             data = response.json()
             
         response_data = data.get("response")
-        if not response_data:
+        if not isinstance(response_data, dict):
             return []
             
-        docs = response_data.get("docs", [])
+        docs = response_data.get("docs")
+        if not isinstance(docs, list):
+            return []
         
         return [
             self._transform_article(doc) 
