@@ -21,11 +21,13 @@ celery_app.conf.update(
     task_time_limit=3600,
 )
 
+from datetime import timedelta
+
 # Schedule periodic tasks
 celery_app.conf.beat_schedule = {
     "periodic-article-fetch": {
         "task": "fetch_all_sources",
-        "schedule": crontab(minute=f"*/{settings.FETCH_INTERVAL_MINUTES}"),
+        "schedule": timedelta(minutes=settings.FETCH_INTERVAL_MINUTES),
     },
 }
 
