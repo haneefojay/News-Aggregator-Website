@@ -139,4 +139,10 @@ class ArticleService:
         result = await self.db.execute(articles_query)
         articles = result.scalars().all()
         
+        # Diagnostic Log
+        if articles:
+            sources_found = set(a.source for a in articles)
+            categories_found = set(a.category for a in articles)
+            print(f"DEBUG SEARCH: Found {len(articles)} articles. Sources: {sources_found}, Categories: {categories_found}")
+        
         return list(articles), total

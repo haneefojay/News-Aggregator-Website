@@ -74,7 +74,7 @@ async def _fetch_all_sources_async():
                     for article_data in articles:
                         try:
                             # Always force the category to our standard names for consistent filtering
-                            article_data.category = category
+                            article_data.category = category.strip()
                                 
                             article = await article_service.create_article(article_data)
                             if article:
